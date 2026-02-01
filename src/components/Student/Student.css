@@ -1,0 +1,136 @@
+/* --- NAVIGATION --- */
+.student-nav {
+  /* Dark Header to match Login theme */
+  background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
+  color: white;
+  border-bottom: none;
+  padding: 1.5rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.student-nav .text-slate-800 {
+  color: white !important; /* Force white text in header */
+}
+
+.student-nav .text-slate-500, .student-nav .text-slate-600 {
+  color: #94a3b8 !important; /* Lighter gray for secondary text */
+}
+
+.student-nav button:hover {
+  color: #67e8f9 !important; /* Cyan hover for logout */
+}
+
+/* --- DASHBOARD BACKGROUND --- */
+.min-h-screen {
+  background-color: #f8fafc; /* Keep clean light background for content */
+}
+
+/* --- EXAM CARDS --- */
+.exam-card {
+  background-color: white;
+  padding: 2.5rem;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Hover Effect: Teal Left Border */
+.exam-card::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: 0px;
+  background: #0e7490;
+  transition: width 0.3s ease;
+}
+
+.exam-card:hover {
+  transform: translateY(-5px);
+  border-color: #0e7490;
+  box-shadow: 0 20px 25px -5px rgba(14, 116, 144, 0.15);
+}
+
+.exam-card:hover::before {
+  width: 6px;
+}
+
+.exam-card h3 {
+  font-size: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 800;
+  color: #1e293b;
+}
+
+/* Start Button */
+.btn-start-exam {
+  background-color: #f1f5f9;
+  color: #475569;
+  padding: 1.125rem 2.5rem;
+  border-radius: 0.75rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.exam-card:hover .btn-start-exam {
+  background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%);
+  color: white;
+  box-shadow: 0 4px 10px rgba(14, 116, 144, 0.3);
+}
+
+/* --- EXAM INTERFACE (Active Exam) --- */
+.question-paper {
+  padding: 3rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+}
+
+/* Sticky Header */
+header.bg-slate-900 {
+  background: linear-gradient(90deg, #0f172a 0%, #0e7490 100%);
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.timer-badge {
+  font-size: 1.75rem;
+  font-weight: 800;
+  padding: 0.75rem 1.75rem;
+  border-radius: 1rem;
+  background-color: rgba(0, 0, 0, 0.3); /* Transparent dark bg */
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+}
+
+/* Input Fields */
+textarea {
+  font-size: 1.25rem;
+  line-height: 1.6;
+  border: 2px solid #e2e8f0;
+  border-radius: 1rem;
+  padding: 1.5rem;
+}
+
+textarea:focus {
+  border-color: #0e7490;
+  box-shadow: 0 0 0 4px rgba(14, 116, 144, 0.1);
+}
+
+/* Submit Button */
+button.bg-blue-600 {
+  background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%); /* Teal */
+}

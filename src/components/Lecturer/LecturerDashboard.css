@@ -1,0 +1,190 @@
+.lecturer-layout {
+  min-height: 100vh;
+  background-color: #f0f9ff; /* Very light blue tint background */
+  display: flex;
+  font-family: 'Inter', sans-serif;
+}
+
+/* --- SIDEBAR (THEMED) --- */
+.lecturer-sidebar {
+  width: 20rem;
+  /* Match Login Left Panel Gradient */
+  background: linear-gradient(180deg, #0f172a 0%, #0e7490 100%);
+  color: white;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 4px 0 24px rgba(14, 116, 144, 0.15); /* Subtle teal shadow */
+  z-index: 10;
+}
+
+.lecturer-sidebar h2 {
+  color: #67e8f9; /* Cyan highlight text */
+  text-shadow: 0 2px 10px rgba(103, 232, 249, 0.2);
+}
+
+.sidebar-btn {
+  width: 100%;
+  text-align: left;
+  padding: 1.125rem 1.5rem;
+  margin-bottom: 0.75rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  font-size: 1.05rem;
+  font-weight: 500;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #cbd5e1; /* Lighter slate text */
+  border: 1px solid transparent;
+}
+
+.sidebar-btn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  transform: translateX(5px);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* Active State: Teal/Cyan Glow */
+.sidebar-btn.active {
+  background: linear-gradient(90deg, rgba(103, 232, 249, 0.2), transparent);
+  border-left: 4px solid #67e8f9;
+  color: #67e8f9;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.lecturer-content {
+  flex: 1;
+  padding: 3rem;
+  overflow-y: auto;
+}
+
+/* --- CARDS & FORMS --- */
+.bg-white {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 15px -3px rgba(14, 116, 144, 0.05); /* Teal-tinted shadow */
+}
+
+.input-label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #334155;
+  margin-bottom: 0.5rem;
+}
+
+.std-input {
+  width: 100%;
+  border: 2px solid #e2e8f0;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  font-size: 1.1rem;
+  transition: all 0.2s;
+  background-color: #f8fafc;
+}
+
+.std-input:focus {
+  border-color: #0e7490; /* Teal Border */
+  background-color: white;
+  box-shadow: 0 0 0 4px rgba(14, 116, 144, 0.1);
+  outline: none;
+}
+
+/* Primary Buttons */
+button.bg-purple-600, button.bg-slate-800 {
+  background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%) !important; /* Teal Gradient */
+  box-shadow: 0 4px 6px -1px rgba(14, 116, 144, 0.3);
+  transition: all 0.2s;
+}
+
+button.bg-purple-600:hover, button.bg-slate-800:hover {
+  filter: brightness(110%);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(14, 116, 144, 0.4);
+}
+
+/* --- TABLES --- */
+thead th {
+  padding: 1.5rem 1rem !important;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: #f1f5f9;
+  color: #475569;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+tbody td {
+  padding: 1.5rem 1rem !important;
+  font-size: 1.05rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #334155;
+}
+
+tbody tr:hover {
+  background-color: #f0f9ff; /* Light blue hover */
+}
+
+/* --- SIDEBAR FOOTER (Profile & Logout) --- */
+.sidebar-footer {
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+
+/* Profile Info (Above the line) */
+.user-profile-info {
+  margin-bottom: 1rem;
+  padding-left: 0.5rem;
+}
+
+.profile-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #67e8f9; /* Bright Cyan */
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  opacity: 0.8;
+}
+
+.profile-id {
+  font-size: 1rem; /* Bigger ID text */
+  font-weight: 600;
+  color: white;
+  word-break: break-all; /* Prevent overflow if email is long */
+  line-height: 1.4;
+}
+
+/* The Line */
+.sidebar-divider {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.2), transparent);
+  margin-bottom: 1.25rem;
+}
+
+/* Logout Button (Bigger & More Visible) */
+.sidebar-logout-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem; /* Larger touch target */
+  font-size: 1.1rem;      /* Larger text */
+  font-weight: 600;
+  color: #fca5a5;         /* Light Red text */
+  background-color: rgba(239, 68, 68, 0.1); /* Subtle red background */
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 0.75rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.sidebar-logout-btn:hover {
+  background-color: #ef4444; /* Bright Red on hover */
+  color: white;
+  border-color: #ef4444;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}

@@ -1,0 +1,260 @@
+/* Container for the split screen */
+.login-page-container {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden; /* Prevents scrollbars from decorative circles */
+  background-color: #f8fafc; /* Right side bg */
+}
+
+/* --- LEFT SIDE: INFO PANEL --- */
+.login-info-side {
+  flex: 1; /* Takes up 50% width */
+  background: linear-gradient(135deg, #0f172a 0%, #0e7490 100%); /* Deep Blue to Teal */
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  padding: 4rem;
+  clip-path: polygon(0 0, 100% 0, 90% 100%, 0% 100%); /* Slight angle on the right edge */
+  z-index: 10;
+}
+
+.info-content {
+  position: relative;
+  z-index: 20;
+  max-width: 32rem;
+}
+
+/* Hero Typography */
+.hero-title {
+  font-size: 3rem;
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.highlight-text {
+  color: #67e8f9; /* Bright cyan text */
+}
+
+.hero-subtitle {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  opacity: 0.9;
+  margin-bottom: 2.5rem;
+  font-weight: 300;
+}
+
+/* Feature List */
+.feature-list {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 4rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  backdrop-filter: blur(5px);
+}
+
+/* Illustration / Icon Wrapper */
+.illustration-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 3rem;
+}
+
+.hero-icon {
+  color: #67e8f9;
+  filter: drop-shadow(0 0 20px rgba(103, 232, 249, 0.3));
+  animation: float 6s ease-in-out infinite;
+}
+
+.floating-icon {
+  position: absolute;
+  background: white;
+  color: #0f172a;
+  padding: 0.75rem;
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+.icon-1 { top: -10px; right: -20px; animation: float 5s ease-in-out infinite 1s; }
+.icon-2 { bottom: 20px; left: -30px; animation: float 7s ease-in-out infinite 0.5s; }
+.icon-3 { bottom: -10px; right: 10px; animation: float 4s ease-in-out infinite 1.5s; }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-15px); }
+}
+
+/* Powered By Badge */
+.powered-by {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.powered-label {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  opacity: 0.7;
+}
+.brand-pill {
+  background: white;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.75rem;
+  font-weight: 800;
+  font-size: 1.1rem;
+  width: fit-content;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+/* Decorative Background Circles */
+.circle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.1;
+  background: white;
+}
+.circle-1 { width: 400px; height: 400px; top: -100px; left: -100px; }
+.circle-2 { width: 300px; height: 300px; bottom: 50px; right: 50px; }
+
+
+/* --- RIGHT SIDE: LOGIN FORM --- */
+.login-form-side {
+  flex: 1; /* Takes up 50% width */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  margin-left: -5%; /* Pulls it slightly left to overlap the angled background if wanted, or adjust to 0 */
+  z-index: 20;
+}
+
+.login-card {
+  background: white;
+  width: 100%;
+  max-width: 28rem;
+  padding: 3rem;
+  border-radius: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
+  animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes slideUp { 
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-logo-container {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem auto;
+  box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.3);
+}
+
+/* Role Buttons (Refined) */
+.role-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  background-color: #f1f5f9;
+  padding: 0.4rem;
+  border-radius: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.role-btn {
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  color: #64748b;
+  background: transparent;
+  transition: all 0.2s ease;
+}
+
+.role-btn.active-student {
+  background-color: white;
+  color: #0284c7; /* Sky Blue */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.role-btn.active-lecturer {
+  background-color: white;
+  color: #7e22ce; /* Purple */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Inputs */
+.login-input {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+  background-color: white;
+  transition: all 0.2s;
+}
+
+.login-input:focus {
+  border-color: #0ea5e9; /* Sky Blue */
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+  outline: none;
+}
+
+/* Submit Button */
+.submit-btn {
+  width: 100%;
+  padding: 1rem;
+  border-radius: 0.5rem;
+  color: white;
+  font-weight: 700;
+  font-size: 1rem;
+  border: none;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: transform 0.1s;
+}
+.btn-blue { background-color: #0284c7; }
+.btn-blue:hover { background-color: #0369a1; }
+.btn-purple { background-color: #9333ea; }
+.btn-purple:hover { background-color: #7e22ce; }
+
+/* Responsive: Stack on mobile */
+@media (max-width: 900px) {
+  .login-page-container {
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .login-info-side {
+    display: none; /* Hide illustrative side on very small screens or make it top banner */
+  }
+  .login-form-side {
+    padding: 1rem;
+    margin-left: 0;
+  }
+}
