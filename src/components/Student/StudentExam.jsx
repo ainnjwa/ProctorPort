@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 import AIMonitor from '../AIMonitor/AIMonitor';
 import './Student.css';
@@ -6,17 +6,23 @@ import './Student.css';
 const StudentExam = ({ user, exam, onFinish }) => {
   const [timeLeft, setTimeLeft] = useState(exam.duration * 60);
   const [violationMsg, setViolationMsg] = useState(null);
-  
-  // Store answers: { [questionId]: "user answer" }
   const [answers, setAnswers] = useState({});
+  
+  // Use a ref to always have access to the latest answers inside the timer interval
+  const answersRef = useRef(answers);
 
-  // TIMER + FULLSCREEN ENFORCEMENT
+  // Sync ref with state
+  useEffect(() => {
+    answersRef.current = answers;
+  }, [answers]);
+
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timer);
-          onFinish();
+          // AUTO SUBMIT: Pass current answers and trigger finish
+          handleAutoSubmit();
           return 0;
         }
         return prev - 1;
@@ -24,19 +30,27 @@ const StudentExam = ({ user, exam, onFinish }) => {
     }, 1000);
 
     const enforceFullscreen = () => {
-      if (!document.fullscreenElement) {
+      if (!document.fullscreenElement && timeLeft > 0) {
         setViolationMsg('DO NOT EXIT FULL SCREEN MODE');
       }
     };
 
     document.addEventListener('fullscreenchange', enforceFullscreen);
+    
     return () => {
       clearInterval(timer);
       document.removeEventListener('fullscreenchange', enforceFullscreen);
     };
-  }, [onFinish]);
+  }, []); // Empty dependency array to prevent timer restarts
 
-  // HANDLE AI VIOLATION ALERT
+  const handleAutoSubmit = () => {
+    console.log("Timer expired. Auto-submitting...");
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(() => {});
+    }
+    onFinish(answersRef.current);
+  };
+
   const handleViolationAlert = (msg) => {
     setViolationMsg(msg);
     setTimeout(() => setViolationMsg(null), 3000);
@@ -48,7 +62,6 @@ const StudentExam = ({ user, exam, onFinish }) => {
     return `${m}:${s < 10 ? '0' : ''}${s}`;
   };
 
-  // Handle Input Changes
   const handleAnswerChange = (questionId, value) => {
     setAnswers(prev => ({
         ...prev,
@@ -71,7 +84,6 @@ const StudentExam = ({ user, exam, onFinish }) => {
             <AlertTriangle size={64} className="mx-auto mb-4" />
             <h2 className="text-3xl font-black mb-2">VIOLATION DETECTED</h2>
             <p className="text-xl">{violationMsg}</p>
-            <p className="text-sm mt-4 opacity-80">This incident has been logged.</p>
           </div>
         </div>
       )}
@@ -80,11 +92,11 @@ const StudentExam = ({ user, exam, onFinish }) => {
       <header className="bg-slate-900 text-white p-4 flex justify-between items-center shadow z-40 sticky top-0">
         <div>
           <h1 className="text-lg font-bold">{exam.subject}</h1>
-          <p className="text-xs text-slate-400">Student ID: {user.email}</p>
+          <p className="text-xs text-slate-400">Student: {user.email}</p>
         </div>
 
         <div className={`text-xl font-mono font-bold px-4 py-2 rounded ${
-          timeLeft < 300 ? 'bg-red-600 animate-pulse' : 'bg-slate-800'
+          timeLeft < 60 ? 'bg-red-600 animate-pulse' : 'bg-slate-800'
         }`}>
           <Clock size={18} className="inline mr-2" />
           {formatTime(timeLeft)}
@@ -93,20 +105,6 @@ const StudentExam = ({ user, exam, onFinish }) => {
 
       {/* MAIN EXAM CONTENT */}
       <main className="flex-1 p-8 max-w-4xl mx-auto w-full overflow-y-auto">
-        
-        {/* FALLBACK: Handle Old Exam Format (Single Question) */}
-        {!exam.questions && (
-             <div className="bg-white p-8 rounded-xl shadow border border-slate-200 mb-6">
-                <h3 className="font-bold text-lg mb-4">Question 1</h3>
-                <p className="text-lg text-slate-700 mb-8 whitespace-pre-wrap">{exam.question}</p>
-                <textarea
-                    className="w-full h-64 border border-slate-300 rounded-lg p-4 focus:ring-2 focus:ring-blue-500 outline-none resize-none font-mono"
-                    placeholder="Type your answer here..."
-                />
-             </div>
-        )}
-
-        {/* NEW: Handle Multiple Questions */}
         {exam.questions?.map((q, index) => (
             <div key={q.id || index} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-6">
                 <div className="flex gap-2 mb-4">
@@ -118,7 +116,6 @@ const StudentExam = ({ user, exam, onFinish }) => {
                 <h3 className="font-bold text-lg text-slate-800 mb-2">Question {index + 1}</h3>
                 <p className="text-slate-700 mb-6 whitespace-pre-wrap text-lg">{q.text}</p>
 
-                {/* TEXT INPUT RENDERER */}
                 {q.type === 'text' && (
                     <textarea
                         className="w-full h-40 border border-slate-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
@@ -128,7 +125,6 @@ const StudentExam = ({ user, exam, onFinish }) => {
                     />
                 )}
 
-                {/* MCQ INPUT RENDERER */}
                 {q.type === 'mcq' && (
                     <div className="space-y-3">
                         {q.options?.map((option, i) => (
@@ -151,7 +147,11 @@ const StudentExam = ({ user, exam, onFinish }) => {
 
         <div className="mt-8 flex justify-end pb-12">
           <button
-            onClick={() => onFinish(answers)}
+            onClick={() => {
+                if(window.confirm("Are you sure you want to submit?")) {
+                    handleAutoSubmit();
+                }
+            }}
             className="bg-blue-600 text-white px-8 py-3 rounded-lg font-bold shadow hover:bg-blue-700 transition flex items-center gap-2">
               Submit Exam <CheckCircle size={20} />
           </button>
