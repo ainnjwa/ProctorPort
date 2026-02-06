@@ -16,6 +16,7 @@ const LecturerDashboard = ({ user, onLogout }) => {
   
   // Tracks expanded state for Subject headers and Student headers
   const [expandedGroups, setExpandedGroups] = useState({});
+  const [grading, setGrading] = useState({});
 
   // Exam Form State (Original Manage Exam Logic)
   const [newExam, setNewExam] = useState({ subject: '', duration: 60, questions: [] });
@@ -41,23 +42,9 @@ const LecturerDashboard = ({ user, onLogout }) => {
     return () => { unsubSub(); unsubVio(); unsubExam(); };
   }, [user]);
 
-  // --- UI HANDLERS ---
-  const toggleGroup = (groupId) => {
-    setExpandedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
-  };
-
-  const addQuestion = () => {
-    if (!currentQ.text.trim()) { alert("Enter question text"); return; }
-    setNewExam(prev => ({ ...prev, questions: [...(prev.questions || []), { ...currentQ, id: Date.now() }] }));
-    setCurrentQ({ type: 'text', text: '', options: ['', '', '', ''], correctAnswer: '' });
-  };
-
-  const removeQuestion = (id) => setNewExam(prev => ({ ...prev, questions: prev.questions.filter(q => q.id !== id) }));
-
   const startEditing = (exam) => {
     setNewExam({ subject: exam.subject, duration: exam.duration, questions: exam.questions || [] });
     setEditingExamId(exam.id);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const cancelEditing = () => {
@@ -65,69 +52,62 @@ const LecturerDashboard = ({ user, onLogout }) => {
     setEditingExamId(null);
   };
 
-  const handleSaveExam = async (e) => {
-    e.preventDefault();
-    if (!newExam.questions?.length) { alert("Add questions first"); return; }
+  const handleDeleteExam = async (examId) => {
+    if(!window.confirm("Delete this exam? All related logs will be hidden.")) return;
     try {
-        if (editingExamId) {
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'exams', editingExamId), {
-                ...newExam, updatedAt: serverTimestamp()
-            });
-            alert('Exam Updated Successfully');
-        } else {
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'exams'), {
-                ...newExam, lecturerId: user.uid, createdAt: serverTimestamp(), status: 'active'
-            });
-            alert('Exam Created Successfully');
-        }
-        cancelEditing();
+      await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'exams', examId));
     } catch (err) {
-        console.error(err);
-        alert("Error saving exam.");
+      console.error(err);
+      alert("Error deleting exam");
     }
   };
 
-  const handleDeleteExam = async (examId) => {
-      if(!window.confirm("Delete this exam? All related logs and submissions will be hidden.")) return;
-      try {
-          await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'exams', examId));
-      } catch (err) {
-          console.error(err);
-          alert("Error deleting exam");
-      }
+  const handleReleaseMarks = async () => {
+    if (!selectedSubmission?.id) return;
+    const totalMark = Object.values(grading).reduce((sum, val) => sum + (Number(val) || 0), 0);
+    try {
+      const subRef = doc(db, 'submissions', selectedSubmission.id);
+      await updateDoc(subRef, {
+        marks: grading,
+        totalMark: totalMark,
+        status: 'Released',
+        gradedAt: serverTimestamp()
+      });
+      alert(`Marks released! Total: ${totalMark}`);
+      setSelectedSubmission(null);
+    } catch (e) {
+      console.error(e);
+      alert("Error releasing marks. Check your Firebase Rules update.");
+    }
   };
 
-  // --- DATA FILTERING & NESTING (Removes Archived Exams) ---
-  const getNestedData = (dataItems) => {
-    const subjectMap = {};
-    // Initialize ONLY with existing exams
-    exams.forEach(exam => {
-        subjectMap[exam.id] = { subject: exam.subject, students: {} };
-    });
+  const toggleGroup = (groupId) => {
+    setExpandedGroups(prev => ({ ...prev, [groupId]: !prev[groupId] }));
+  };
 
-    dataItems.forEach(item => {
+  const getNestedData = (items) => {
+    const map = {};
+    exams.forEach(e => { map[e.id] = { subject: e.subject, students: {} }; });
+    items.forEach(item => {
+      if (!map[item.examId]) return;
+      if (!map[item.examId].students[item.studentId]) map[item.examId].students[item.studentId] = [];
+      map[item.examId].students[item.studentId].push(item);
+    });
+    return map;
+  };
+
+   /* dataItems.forEach(item => {
         const examId = item.examId;
         const studentId = item.studentId || "Unknown Student";
-        
-        // FILTER: If examId doesn't exist in active exams, skip it
         if (!subjectMap[examId]) return;
-        
         if (!subjectMap[examId].students[studentId]) {
             subjectMap[examId].students[studentId] = [];
         }
         subjectMap[examId].students[studentId].push(item);
     });
     return subjectMap;
-  };
+  }; */
 
-  const getQuestionDetails = (examId, questionId) => {
-    const exam = exams.find(e => e.id === examId);
-    if (!exam || !exam.questions) return { text: "Context missing", type: 'text' };
-    const q = exam.questions.find(q => String(q.id) === String(questionId));
-    return q || { text: "Question deleted", type: 'text' };
-  };
-
-  // --- REUSABLE COMPONENT FOR COLLAPSIBLE BUTTONS ---
   const SectionHeader = ({ id, label, count, icon: Icon, type = "subject" }) => (
     <button 
       onClick={() => toggleGroup(id)}
@@ -148,9 +128,31 @@ const LecturerDashboard = ({ user, onLogout }) => {
     </button>
   );
 
+  // Original Manage Exam Logic (Keep as is)
+  const addQuestion = () => {
+    if (!currentQ.text.trim()) { alert("Enter question text"); return; }
+    setNewExam(prev => ({ ...prev, questions: [...(prev.questions || []), { ...currentQ, id: Date.now() }] }));
+    setCurrentQ({ type: 'text', text: '', options: ['', '', '', ''], correctAnswer: '' });
+  };
+  const removeQuestion = (id) => setNewExam(prev => ({ ...prev, questions: prev.questions.filter(q => q.id !== id) }));
+  const handleSaveExam = async (e) => {
+    e.preventDefault();
+    if (!newExam.questions?.length) { alert("Add questions first"); return; }
+    try {
+        if (editingExamId) {
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'exams', editingExamId), { ...newExam, updatedAt: serverTimestamp() });
+            alert('Exam Updated');
+        } else {
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'exams'), { ...newExam, lecturerId: user.uid, createdAt: serverTimestamp(), status: 'active' });
+            alert('Exam Created');
+        }
+        setNewExam({ subject: '', duration: 60, questions: [] });
+        setEditingExamId(null);
+         } catch (err) { console.error(err); }
+    };
+
   return (
     <div className="lecturer-layout">
-      {/* SIDEBAR */}
       <div className="lecturer-sidebar">
         <h2 className="text-xl font-bold mb-8 flex items-center gap-2">
             <ShieldAlert className="text-purple-400" /> ProctorPort
@@ -163,7 +165,7 @@ const LecturerDashboard = ({ user, onLogout }) => {
                 <Eye size={18} /> Live Monitoring
             </button>
             <button onClick={() => { setView('review'); setSelectedSubmission(null); }} className={`sidebar-btn ${view === 'review' ? 'active' : ''}`}>
-                <FileCheck size={18} /> Review Answers
+                <FileCheck size={18} /> Review & Grade 
             </button>
         </nav>
         <div className="sidebar-footer">
@@ -292,74 +294,79 @@ const LecturerDashboard = ({ user, onLogout }) => {
 
         {/* --- VIEW 3: REVIEW ANSWERS (NESTED COLLAPSIBLE + FILTERED) --- */}
         {view === 'review' && (
-            <div className="max-w-4xl mx-auto">
-                {!selectedSubmission ? (
-                    <>
-                        <h1 className="text-2xl font-bold text-slate-800 mb-6">Student Submissions</h1>
-                        {Object.entries(getNestedData(submissions)).map(([exId, data]) => (
-                            <div key={exId} className="mb-4">
-                                <SectionHeader id={`rev-ex-${exId}`} label={data.subject} count={Object.keys(data.students).length + " Students"} icon={FileCheck} />
-                                
-                                {expandedGroups[`rev-ex-${exId}`] && Object.entries(data.students).map(([stuId, subs]) => (
-                                    <div key={stuId} className="mb-2">
-                                        <SectionHeader id={`rev-stu-${exId}-${stuId}`} label={stuId} count={subs.length + " Attempts"} icon={User} type="student" />
-                                        
-                                        {expandedGroups[`rev-stu-${exId}-${stuId}`] && (
-                                            <div className="ml-8 mb-4 bg-white border border-slate-200 rounded-lg overflow-hidden">
-                                                {subs.map(sub => (
-                                                    <div key={sub.id} className="p-4 flex justify-between items-center border-b last:border-0 hover:bg-slate-50">
-                                                        <span className="text-xs text-slate-500">
-                                                            Submitted: {sub.timestamp?.seconds ? new Date(sub.timestamp.seconds * 1000).toLocaleString() : 'Processing...'}
-                                                        </span>
-                                                        <button onClick={() => setSelectedSubmission(sub)} className="bg-blue-600 text-white px-4 py-1.5 rounded text-xs font-bold flex items-center gap-1">
-                                                            Review Answers <ChevronRight size={14} />
-                                                        </button>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-                        ))}
-                    </>
-                ) : (
-                    <div>
-                        <button onClick={() => setSelectedSubmission(null)} className="mb-6 text-slate-500 hover:text-slate-800 flex items-center gap-2"><ArrowLeft size={18} /> Back to List</button>
-                        <div className="bg-white p-8 rounded-xl shadow-sm border border-slate-200">
-                            <div className="flex justify-between items-start mb-8 pb-4 border-b">
-                                <div>
-                                    <h2 className="text-xl font-bold text-slate-800">{selectedSubmission.examSubject}</h2>
-                                    <p className="text-slate-500">Student ID: {selectedSubmission.studentId}</p>
-                                </div>
-                                <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                                    <CheckCircle size={14}/> Successfully Saved
-                                </span>
-                            </div>
-                            <div className="space-y-6">
-                                {Object.entries(selectedSubmission.answers || {}).map(([qId, answer], idx) => {
-                                    const qInfo = getQuestionDetails(selectedSubmission.examId, qId);
-                                    return (
-                                        <div key={qId} className="p-5 bg-slate-50 rounded-lg border border-slate-200">
-                                            <div className="flex gap-2 items-start mb-3">
-                                                <span className="bg-slate-200 text-slate-600 px-2 py-0.5 rounded text-xs font-bold">Q{idx+1}</span>
-                                                <p className="font-bold text-slate-700">{qInfo.text}</p>
-                                            </div>
-                                            <div className="bg-white p-4 rounded border border-slate-100 text-slate-800 whitespace-pre-wrap min-h-[50px]">
-                                                {answer || <span className="text-slate-400 italic">No answer provided.</span>}
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
+          <div className="max-w-4xl mx-auto">
+            {!selectedSubmission ? (
+              <>
+                <h1 className="text-2xl font-bold text-slate-800 mb-6">Review & Grading</h1>
+                {Object.entries(getNestedData(submissions)).map(([exId, data]) => (
+                  <div key={exId} className="mb-4">
+                    <SectionHeader id={`r-e-${exId}`} label={data.subject} count={Object.keys(data.students).length} icon={FileCheck} />
+                    {expandedGroups[`r-e-${exId}`] && Object.entries(data.students).map(([stuId, subs]) => (
+                      <div key={stuId}>
+                        <SectionHeader id={`r-s-${exId}-${stuId}`} label={stuId} count={subs.length} icon={User} type="student" />
+                        {expandedGroups[`r-s-${exId}-${stuId}`] && (
+                          <div className="ml-8 mb-4 bg-white border rounded-lg overflow-hidden">
+                            {subs.map(sub => (
+  <div key={sub.id} className="p-4 flex justify-between items-center border-b hover:bg-slate-50">
+    <div>
+      <span className="text-[10px] font-bold text-slate-400 uppercase">
+        {sub.timestamp?.seconds ? new Date(sub.timestamp.seconds * 1000).toLocaleString() : '...'}
+      </span>
+      {/* If this text appears, the database sync is working */}
+      {sub.status === 'Released' && (
+        <span className="ml-3 text-green-600 font-bold text-xs uppercase tracking-tighter">● Graded</span>
+      )}
+    </div>
+
+    {sub.status === 'Released' ? (
+      <button 
+        disabled 
+        className="bg-green-600 text-white px-4 py-1.5 rounded text-[10px] font-bold uppercase cursor-default opacity-100"
+      >
+        Graded
+      </button>
+    ) : (
+      <button 
+        onClick={() => { 
+          setSelectedSubmission(sub); 
+          setGrading(sub.marks || {}); 
+        }} 
+        className="bg-cyan-600 text-white px-4 py-1.5 rounded text-[10px] font-bold uppercase hover:bg-cyan-700"
+      >
+        Grade
+      </button>
+    )}
+  </div>
+))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </>
+            ) : (
+              <div className="bg-white p-8 rounded-xl shadow-lg border">
+                <button onClick={() => setSelectedSubmission(null)} className="mb-4 text-slate-500 flex items-center gap-1"><ArrowLeft size={16}/> Back</button>
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold">{selectedSubmission.studentId}</h2>
+                    <button onClick={handleReleaseMarks} className="bg-green-600 text-white px-4 py-2 rounded font-bold">Release Mark</button>
+                </div>
+                {Object.entries(selectedSubmission.answers || {}).map(([qId, answer], idx) => (
+                    <div key={qId} className="mb-4 p-4 bg-slate-50 rounded border">
+                        <div className="flex justify-between mb-2">
+                            <p className="font-bold">Question {idx+1}</p>
+                            <input type="number" className="w-16 border rounded text-center" value={grading[qId] || 0} onChange={(e) => setGrading({...grading, [qId]: e.target.value})} />
                         </div>
+                        <p>{answer}</p>
                     </div>
-                )}
-            </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
       </div>
     </div>
   );
 };
-
 export default LecturerDashboard;
